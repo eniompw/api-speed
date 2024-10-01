@@ -6,6 +6,7 @@ from google.auth.exceptions import DefaultCredentialsError
 import asyncio
 import aiohttp
 from dotenv import load_dotenv
+from database import create_connection, insert_response, get_average_response_time, create_table
 
 # Load the API keys from the api.key file
 load_dotenv('api.key')
@@ -20,12 +21,12 @@ API_CONFIG = {
     "Mistral": {
         "url": "https://api.mistral.ai/v1/chat/completions",
         "key": os.environ.get("MISTRAL_API_KEY"),
-        "model": "open-mixtral-8x22b"
+        "model": "mistral-large-2407"
     },
     "Groq": {
         "url": "https://api.groq.com/openai/v1/chat/completions",
         "key": os.environ.get("GROQ_API_KEY"),
-        "model": "llama-3.1-70b-versatile"
+        "model": "llama-3.2-90b-text-preview"
     },
     "Gemini": {
         "key": os.environ.get("GOOGLE_API_KEY"),
@@ -36,6 +37,10 @@ API_CONFIG = {
 # Gemini setup
 genai.configure(api_key=API_CONFIG["Gemini"]["key"])
 gemini_model = genai.GenerativeModel(API_CONFIG["Gemini"]["model"])
+
+# Create a global database connection
+db_conn = create_connection()
+create_table(db_conn)  # Ensure the table exists
 
 async def get_api_response(api_name, query, session):
     config = API_CONFIG[api_name]
@@ -61,7 +66,12 @@ async def get_api_response(api_name, query, session):
         content = f"Error: {str(e)}"
     
     end_time = time.time()
-    return api_name, config["model"], content, end_time - start_time
+    response_time = end_time - start_time
+    
+    # Insert the response into the database using the global connection
+    insert_response(db_conn, api_name, config["model"], query, response_time)
+    
+    return api_name, config["model"], content, response_time
 
 async def get_gemini_response(query):
     config = API_CONFIG["Gemini"]
@@ -74,7 +84,12 @@ async def get_gemini_response(query):
     except Exception as e:
         content = f"Error: Unexpected error with Gemini API. {str(e)}"
     end_time = time.time()
-    return "Gemini", config["model"], content, end_time - start_time
+    response_time = end_time - start_time
+    
+    # Insert the response into the database using the global connection
+    insert_response(db_conn, "Gemini", config["model"], query, response_time)
+    
+    return "Gemini", config["model"], content, response_time
 
 async def test_api_speed(query):
     async with aiohttp.ClientSession() as session:
@@ -89,6 +104,10 @@ async def test_api_speed(query):
             print(f"\n{api} API (Model: {model})")
             print(f"Time taken: {time_taken:.4f} seconds")
             print(f"Response: {response[:100]}...")  # Truncate long responses
+            
+            # Get and print the average response time using the global connection
+            avg_time = get_average_response_time(db_conn, api, model)
+            print(f"Average response time: {avg_time:.4f} seconds")
 
 async def main():
     query = "In one word, what is the capital of France?"
@@ -96,4 +115,8 @@ async def main():
     await test_api_speed(query)
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    finally:
+        # Close the database connection when the script exits
+        db_conn.close()
