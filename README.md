@@ -33,8 +33,8 @@ To change the test query, modify the `query` variable in the `main()` function o
 ## API Models
 
 The script currently uses the following models:
-- Mistral: mistral-large-latest
-- Groq: llama-3.1-70b-versatile
+- Mistral: mistral-large-2407
+- Groq: llama-3.2-90b-text-preview
 - Gemini: gemini-1.5-flash-002
 
 To change the models or add more APIs, modify the `API_CONFIG` dictionary in `api-speed.py`.
