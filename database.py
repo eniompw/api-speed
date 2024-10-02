@@ -1,4 +1,4 @@
-__all__ = ['create_connection', 'create_table', 'insert_response', 'get_average_response_time']
+__all__ = ['create_connection', 'create_table', 'insert_response', 'get_average_response_time', 'get_fastest_response_time', 'get_slowest_response_time']
 
 import sqlite3
 from datetime import datetime
@@ -33,6 +33,22 @@ def get_average_response_time(conn, api_name, model_name):
     cursor = conn.cursor()
     cursor.execute('''
     SELECT AVG(response_time) FROM api_responses
+    WHERE api_name = ? AND model_name = ?
+    ''', (api_name, model_name))
+    return cursor.fetchone()[0]
+
+def get_fastest_response_time(conn, api_name, model_name):
+    cursor = conn.cursor()
+    cursor.execute('''
+    SELECT MIN(response_time) FROM api_responses
+    WHERE api_name = ? AND model_name = ?
+    ''', (api_name, model_name))
+    return cursor.fetchone()[0]
+
+def get_slowest_response_time(conn, api_name, model_name):
+    cursor = conn.cursor()
+    cursor.execute('''
+    SELECT MAX(response_time) FROM api_responses
     WHERE api_name = ? AND model_name = ?
     ''', (api_name, model_name))
     return cursor.fetchone()[0]
