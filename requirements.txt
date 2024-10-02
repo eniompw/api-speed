@@ -1,4 +1,3 @@
 requests
-google-generativeai
 aiohttp
 python-dotenv
