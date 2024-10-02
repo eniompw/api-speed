@@ -22,7 +22,7 @@ API_CONFIG = {
         "model": "llama-3.2-90b-text-preview"
     },
     "Gemini": {
-        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent",
+        "url": "https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent",
         "key": os.getenv("GOOGLE_API_KEY"),
         "model": "gemini-1.5-flash-002"
     }
@@ -37,20 +37,28 @@ async def call_api(api_name, query, session):
     start_time = time.time()
     
     try:
-        url = f"{config['url']}{'?key=' if api_name == 'Gemini' else ''}{config['key']}"
-        headers = {"Content-Type": "application/json"} if api_name == "Gemini" else {"Authorization": f"Bearer {config['key']}"}
-        data = {"contents": [{"parts": [{"text": query}]}]} if api_name == "Gemini" else {"messages": [{"role": "user", "content": query}], "model": config["model"]}
+        if api_name == "Gemini":
+            url = f"{config['url']}?key={config['key']}"
+            headers = {}
+            data = {"contents": [{"parts": [{"text": query}]}]}
+        else:
+            url = config['url']
+            headers = {"Authorization": f"Bearer {config['key']}"}
+            data = {"messages": [{"role": "user", "content": query}], "model": config["model"]}
 
         async with session.post(url, headers=headers, json=data) as response:
             response.raise_for_status()
             json_response = await response.json()
-            content = json_response["candidates"][0]["content"]["parts"][0]["text"] if api_name == "Gemini" else json_response["choices"][0]["message"]["content"]
+            
+            if api_name == "Gemini":
+                content = json_response["candidates"][0]["content"]["parts"][0]["text"]
+            else:
+                content = json_response["choices"][0]["message"]["content"]
     except Exception as e:
         content = f"Error with {api_name} API: {str(e)}"
     
     response_time = time.time() - start_time
     insert_response(db_conn, api_name, config["model"], query, response_time)
-    
     return api_name, config["model"], content, response_time
 
 async def test_api_speed(query):
