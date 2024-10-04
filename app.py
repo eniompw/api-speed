@@ -22,9 +22,9 @@ API_CONFIG = {
         "model": "llama-3.2-90b-text-preview"
     },
     "Gemini": {
-        "url": "https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent",
+        "url": "https://generativelanguage.googleapis.com/v1/models/{model}:generateContent",
         "key": os.getenv("GOOGLE_API_KEY"),
-        "model": "gemini-1.5-flash-002"
+        "model": "gemini-1.5-pro-002"
     }
 }
 
@@ -38,7 +38,7 @@ async def call_api(api_name, query, session):
     
     try:
         if api_name == "Gemini":
-            url = f"{config['url']}?key={config['key']}"
+            url = config['url'].format(model=config['model']) + f"?key={config['key']}"
             headers = {}
             data = {"contents": [{"parts": [{"text": query}]}]}
         else:
