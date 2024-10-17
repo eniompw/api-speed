@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from database import create_connection, insert_response, get_average_response_time, create_table, get_fastest_response_time, get_slowest_response_time
 
 # Load API keys and setup
-load_dotenv('api.key')
+load_dotenv()  # This will now load from .env by default
 
 API_CONFIG = {
     "Mistral": {
@@ -25,6 +25,11 @@ API_CONFIG = {
         "url": "https://generativelanguage.googleapis.com/v1/models/{model}:generateContent",
         "key": os.getenv("GOOGLE_API_KEY"),
         "model": "gemini-1.5-pro-002"
+    },
+    "NVIDIA": {
+        "url": "https://integrate.api.nvidia.com/v1/chat/completions",
+        "key": os.getenv("NV_API_KEY"),
+        "model": "nvidia/llama-3.1-nemotron-70b-instruct"
     }
 }
 

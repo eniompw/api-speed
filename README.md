@@ -1,14 +1,15 @@
 # API Speed Test
 
-This project tests the speed and responses of various AI APIs, including Mistral, Groq, and Google's Gemini. It also stores the response times in a SQLite database for historical analysis.
+This project tests the speed and responses of various AI APIs, including Mistral, Groq, Google's Gemini, and NVIDIA. It also stores the response times in a SQLite database for historical analysis.
 
 ## Setup
 
-1. Create a file named `api.key` in the project root directory with the following content:
+1. Create a file named `.env` in the project root directory with the following content:
    ```bash
    MISTRAL_API_KEY=your_mistral_api_key
    GROQ_API_KEY=your_groq_api_key
    GOOGLE_API_KEY=your_google_api_key
+   NV_API_KEY=your_nvidia_api_key
    ```
    Replace `your_*_api_key` with your actual API keys.
 
@@ -29,7 +30,7 @@ Run the script with:
 python app.py
 ```
 
-The script will send a test query to Mistral, Groq, and Gemini APIs concurrently and display:
+The script will send a test query to Mistral, Groq, Gemini, and NVIDIA APIs concurrently and display:
 - The response times for the current query
 - A snippet of each response
 - The average response time for each API/model combination
@@ -48,7 +49,8 @@ To change the test query, modify the `query` variable in the `main()` function o
 The script currently uses the following models:
 - Mistral: mistral-large-2407
 - Groq: llama-3.2-90b-text-preview
-- Gemini: gemini-1.5-flash-002
+- Gemini: gemini-1.5-pro-002
+- NVIDIA: nvidia/llama-3.1-nemotron-70b-instruct
 
 To change the models or add more APIs, modify the `API_CONFIG` dictionary in `app.py`.
 
